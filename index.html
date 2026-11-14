@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Delivery Management System</title>
+  <!-- फ्री OCR लाइब्रेरी (स्क्रीनशॉट पढ़ने के लिए) -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -59,6 +61,25 @@
       font-weight: bold;
     }
     button:hover { background: #1d4ed8; }
+    .scan-box {
+      background: #eff6ff;
+      border: 2px dashed #3b82f6;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    .scan-btn {
+      background: #059669;
+      margin-top: 8px;
+    }
+    .scan-btn:hover { background: #047857; }
+    #scanStatus {
+      font-size: 14px;
+      color: #1e40af;
+      font-weight: bold;
+      margin-top: 8px;
+    }
     table { width: 100%; border-collapse: collapse; }
     th, td {
       padding: 12px;
@@ -72,7 +93,7 @@
 
   <header>
     <h1>Delivery Management System</h1>
-    <p>Manage your delivery business in one place</p>
+    <p>Smart DoorDash & Delivery Tracker</p>
   </header>
 
   <div class="container">
@@ -93,9 +114,20 @@
 
     <div class="panel">
       <h2>Add New Delivery</h2>
-      <input id="customer" placeholder="Customer Name">
+      
+      <!-- नया स्क्रीनशॉट स्कैनर सेक्शन -->
+      <div class="scan-box">
+        <strong>📸 Auto-Fill from DoorDash Screenshot</strong>
+        <input type="file" id="screenshotInput" accept="image/*" style="display: none;" onchange="scanScreenshot(event)">
+        <button type="button" class="scan-btn" onclick="document.getElementById('screenshotInput').click()">
+          Upload / Scan Screenshot
+        </button>
+        <div id="scanStatus"></div>
+      </div>
+
+      <input id="customer" placeholder="Customer / Restaurant Name">
       <input id="address" placeholder="Delivery Address">
-      <input id="phone" placeholder="Phone Number">
+      <input id="phone" placeholder="Payout ($) & Distance (km)">
       <select id="status">
         <option value="Pending">Pending</option>
         <option value="Completed">Completed</option>
@@ -109,9 +141,9 @@
         <table>
           <thead>
             <tr>
-              <th>Customer</th>
+              <th>Name</th>
               <th>Address</th>
-              <th>Phone</th>
+              <th>Pay / Dist</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -123,6 +155,47 @@
 
   <script>
     let deliveries = JSON.parse(localStorage.getItem("deliveries")) || [];
+
+    // स्क्रीनशॉट स्कैन करने का स्मार्ट फंक्शन
+    async function scanScreenshot(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const statusDiv = document.getElementById("scanStatus");
+      statusDiv.textContent = "⏳ Scanning screenshot... Please wait (5-10 sec)...";
+
+      try {
+        const result = await Tesseract.recognize(file, 'eng');
+        const text = result.data.text;
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 2);
+
+        // 1. पैसे ($ Amount) ढूंढें (जैसे $12.50)
+        const priceMatch = text.match(/\$\s?\d+(\.\d{2})?/);
+        const payout = priceMatch ? priceMatch[0] : "";
+
+        // 2. दूरी (km या mi) ढूंढें (जैसे 4.2 km)
+        const distMatch = text.match(/\d+(\.\d+)?\s?(km|mi|miles)/i);
+        const distance = distMatch ? distMatch[0] : "";
+
+        // 3. पता (Address - जिसमें स्ट्रीट, रोड आदि हो) ढूंढें
+        const addressLine = lines.find(l => /\d+\s+[a-zA-Z]+.*(St|Rd|Ave|Dr|Way|Ct|Ln|Cres|Blvd|Hwy)/i.test(l)) || "";
+
+        // 4. रेस्टोरेंट या कस्टमर का नाम (पहली साफ़ लाइन)
+        const possibleName = lines.find(l => !l.includes('$') && !l.includes('km') && l !== addressLine && l.length > 3) || "DoorDash Order";
+
+        // फॉर्म में डेटा भरें
+        document.getElementById("customer").value = possibleName;
+        if (addressLine) document.getElementById("address").value = addressLine;
+        
+        let payDist = [payout, distance].filter(Boolean).join(" | ");
+        if (payDist) document.getElementById("phone").value = payDist;
+
+        statusDiv.textContent = "✅ Scan Complete! Details auto-filled below.";
+      } catch (error) {
+        console.error(error);
+        statusDiv.textContent = "❌ Could not read image clearly. Please enter manually.";
+      }
+    }
 
     function render() {
       document.getElementById("total").textContent = deliveries.length;
@@ -164,12 +237,13 @@
       document.getElementById("address").value = "";
       document.getElementById("phone").value = "";
       document.getElementById("status").value = "Pending";
+      document.getElementById("scanStatus").textContent = "";
+      document.getElementById("screenshotInput").value = "";
 
       alert("Delivery added successfully!");
       render();
     }
 
-    // Initial render on load
     render();
   </script>
 
