@@ -1,1 +1,179 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delivery Management System</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f3f5f9;
+      color: #202938;
+    }
+    header {
+      background: #172554;
+      color: white;
+      padding: 22px;
+      text-align: center;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 25px auto;
+      padding: 15px;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+    }
+    .card {
+      background: white;
+      padding: 22px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px #0001;
+    }
+    .card h3 { color: #64748b; margin-top: 0; }
+    .number { font-size: 30px; font-weight: bold; }
+    .panel {
+      background: white;
+      padding: 22px;
+      margin-top: 22px;
+      border-radius: 12px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 12px;
+      margin: 7px 0;
+      border: 1px solid #cbd5e1;
+      border-radius: 7px;
+      font-size: 15px;
+    }
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover { background: #1d4ed8; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+    }
+    .table-wrap { overflow-x: auto; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Delivery Management System</h1>
+  <p>Manage your delivery business in one place</p>
+</header>
+
+<div class="container">
+
+  <div class="cards">
+    <div class="card">
+      <h3>Total Deliveries</h3>
+      <div class="number" id="total">0</div>
+    </div>
+    <div class="card">
+      <h3>Completed</h3>
+      <div class="number" id="completed">0</div>
+    </div>
+    <div class="card">
+      <h3>Pending</h3>
+      <div class="number" id="pending">0</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Add New Delivery</h2>
+    <input id="customer" placeholder="Customer Name">
+    <input id="address" placeholder="Delivery Address">
+    <input id="phone" placeholder="Phone Number">
+    <select id="status">
+      <option value="Pending">Pending</option>
+      <option value="Completed">Completed</option>
+    </select>
+    <button onclick="addDelivery()">Add Delivery</button>
+  </div>
+
+  <div class="panel">
+    <h2>Delivery Records</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Address</th>
+            <th>Phone</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="records"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let deliveries = JSON.parse(localStorage.getItem("deliveries") || "[]");
+
+  function render() {
+    document.getElementById("total").textContent = deliveries.length;
+    document.getElementById("completed").textContent =
+      deliveries.filter(d => d.status === "Completed").length;
+    document.getElementById("pending").textContent =
+      deliveries.filter(d => d.status === "Pending").length;
+
+    document.getElementById("records").innerHTML =
+      deliveries.map(d => `
+        <tr>
+          <td>${escapeHTML(d.customer)}</td>
+          <td>${escapeHTML(d.address)}</td>
+          <td>${escapeHTML(d.phone)}</td>
+          <td>${escapeHTML(d.status)}</td>
+        </tr>
+      `).join("");
+
+    localStorage.setItem("deliveries", JSON.stringify(deliveries));
+  }
+
+  function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, c => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;",
+      '"': "&quot;", "'": "&#39;"
+    })[c]);
+  }
+
+  function addDelivery() {
+    const customer = document.getElementById("customer").value.trim();
+    const address = document.getElementById("address").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const status = document.getElementById("status").value;
+
+    if (!customer || !address || !phone) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    deliveries.push({customer, address, phone, status});
+    render();
+
+    document.getElementById("customer").value = "";
+    document.getElementById("address").value = "";
+    document.getElementById("phone").value = "";
+    alert("Delivery added successfully!");
+  }
+
+  render();
+</script>
+
+</body>
+</html>
