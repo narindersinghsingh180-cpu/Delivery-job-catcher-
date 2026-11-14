@@ -153,20 +153,22 @@
   }
 
   function addDelivery() {
-    const customer = document.getElementById("customer").value.trim();
-    const address = document.getElementById("address").value.trim();
-    const phone = document.getElementById("phone").value.trim();
-    const status = document.getElementById("status").value;
+    function addDelivery() {
+  const customer = document.getElementById("customer").value.trim();
+  const address = document.getElementById("address").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const status = document.getElementById("status").value.trim();
 
-    if (!customer || !address || !phone) {
-      alert("Please fill all fields");
-      return;
-    }
+  if (!customer || !address || !phone || !status) {
+    alert("Please fill all fields");
+    return;
+  }
 
-    deliveries.push({customer, address, phone, status});
-    render();
+  deliveries.push({ customer, address, phone, status });
+  render();
+  clearForm();
+}
 
-    document.getElementById("customer").value = "";
     document.getElementById("address").value = "";
     document.getElementById("phone").value = "";
     alert("Delivery added successfully!");
