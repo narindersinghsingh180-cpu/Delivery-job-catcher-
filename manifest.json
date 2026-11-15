@@ -1,0 +1,20 @@
+
+{
+  "name": "Delivery Job Catcher PRO",
+  "short_name": "Job Catcher",
+  "description": "Delivery job notifications and profit calculator",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f1f5f9",
+  "theme_color": "#172554",
+  "icons": [
+    {
+      "src": "./icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
