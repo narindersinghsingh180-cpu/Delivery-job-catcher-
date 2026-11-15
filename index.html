@@ -3,236 +3,398 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Delivery Job Catcher PRO</title>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial;background:#f1f5f9;color:#172033}
-header{background:#172554;color:white;padding:22px;text-align:center}
-.container{max-width:1100px;margin:20px auto;padding:14px}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
-.card,.panel{background:white;padding:18px;border-radius:12px;margin-bottom:16px;box-shadow:0 2px 5px #0001}
-.card h3{font-size:14px;color:#64748b;margin:0 0 10px}
-.number{font-size:27px;font-weight:bold}
-input,select,button{width:100%;padding:12px;margin:6px 0;border:1px solid #cbd5e1;border-radius:7px;font-size:15px}
+body{margin:0;background:#f1f5f9;color:#172033;font-family:Arial}
+header{background:#172554;color:white;text-align:center;padding:20px}
+main{max-width:1100px;margin:auto;padding:14px}
+.panel,.card{background:white;border-radius:12px;padding:16px;margin-bottom:14px;box-shadow:0 2px 6px #0001}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px}
+.card h3{font-size:13px;color:#64748b;margin:0 0 8px}
+.num{font-size:25px;font-weight:bold}
+input,select,button{width:100%;padding:12px;margin:5px 0;border:1px solid #cbd5e1;border-radius:7px;font-size:15px}
 button{background:#2563eb;color:white;border:0;font-weight:bold;cursor:pointer}
-.green{background:#059669}
-.gray{background:#475569}
-.table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:550px}
-th,td{padding:11px;border-bottom:1px solid #e2e8f0;text-align:left;font-size:14px}
+.green{background:#059669}.dark{background:#334155}.red{background:#dc2626}
+.small{font-size:12px;color:#64748b}
+.offer,.job{border-bottom:1px solid #e2e8f0;padding:12px 0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:650px}
+td,th{padding:10px;border-bottom:1px solid #e2e8f0;text-align:left;font-size:13px}
 th{background:#eff6ff}
-.scan-box{background:#eff6ff;padding:14px;border:2px dashed #3b82f6;border-radius:8px;text-align:center}
-.small{font-size:13px;color:#64748b}
-#connection{font-weight:bold;margin:10px 0}
-.offer{padding:12px;border-bottom:1px solid #e2e8f0}
+.best{background:#dcfce7}
+.profit{color:#047857;font-weight:bold}
+.loss{color:#dc2626;font-weight:bold}
+.hidden{display:none}
 </style>
 </head>
 <body>
-
 <header>
-<h1>Delivery Job Catcher PRO</h1>
+<h1>🚚 Delivery Job Catcher PRO</h1>
 <p>Amazon Flex | Sherpa | Dasher | Didi Driver</p>
 </header>
 
-<div class="container">
+<main>
 
-<div class="panel">
+<section class="panel">
 <h2>Cloudflare Connection</h2>
-<p class="small">Enter your private API token. It will only be kept in this browser session.</p>
-<input id="apiToken" type="password" placeholder="Enter API Token">
-<button onclick="loadNotifications()">Connect & Load Notifications</button>
-<button class="gray" onclick="loadNotifications()">Refresh Notifications</button>
-<div id="connection">Not connected</div>
-</div>
+<input id="apiToken" type="password" placeholder="Enter your API Token">
+<button onclick="loadNotifications()">Connect / Refresh Notifications</button>
+<div id="connection" class="small">Not connected</div>
+</section>
 
-<div class="cards">
-<div class="card"><h3>Total Notifications</h3><div class="number" id="totalNotifications">0</div></div>
-<div class="card"><h3>Amazon Flex</h3><div class="number" id="amazonCount">0</div></div>
-<div class="card"><h3>Sherpa</h3><div class="number" id="sherpaCount">0</div></div>
-<div class="card"><h3>Dasher</h3><div class="number" id="dasherCount">0</div></div>
-<div class="card"><h3>Didi Driver</h3><div class="number" id="didiCount">0</div></div>
-</div>
+<section class="cards">
+<div class="card"><h3>Total Notifications</h3><div class="num" id="totalN">0</div></div>
+<div class="card"><h3>Amazon Flex</h3><div class="num" id="amazonN">0</div></div>
+<div class="card"><h3>Sherpa</h3><div class="num" id="sherpaN">0</div></div>
+<div class="card"><h3>Dasher</h3><div class="num" id="dasherN">0</div></div>
+<div class="card"><h3>Didi Driver</h3><div class="num" id="didiN">0</div></div>
+</section>
 
-<div class="panel">
-<h2>Live Delivery Notifications</h2>
-<select id="platformFilter" onchange="renderNotifications()">
-<option value="All">All Platforms</option>
+<section class="panel">
+<h2>⚙️ Vehicle & Running Costs</h2>
+<p class="small">Starting estimates for your Camry. Change these according to your actual costs.</p>
+<div class="grid2">
+<label>Petrol price ($/litre)
+<input id="fuelPrice" type="number" value="1.90" step="0.01"></label>
+<label>Fuel consumption (L/100 km)
+<input id="fuelUse" type="number" value="8" step="0.1"></label>
+<label>Maintenance ($/km)
+<input id="maintenance" type="number" value="0.12" step="0.01"></label>
+</div>
+<button class="green" onclick="updateJobs()">Recalculate All Jobs</button>
+</section>
+
+<section class="panel">
+<h2>📩 Live Notifications</h2>
+<select id="filter" onchange="showNotifications()">
+<option>All</option>
 <option>Amazon Flex</option>
 <option>Sherpa</option>
 <option>Dasher</option>
 <option>Didi Driver</option>
 </select>
 <div id="notifications">Connect to load notifications.</div>
-</div>
+</section>
 
-<div class="panel">
-<h2>Add Manual Delivery</h2>
-<div class="scan-box">
-<strong>📸 Scan Delivery Screenshot</strong>
-<input type="file" id="screenshotInput" accept="image/*">
-<button class="green" onclick="scanScreenshot()">Upload / Scan Screenshot</button>
-<div id="scanStatus"></div>
-</div>
-
-<select id="customerPlatform">
+<section class="panel">
+<h2>➕ Add / Compare a Job</h2>
+<p class="small">Select a notification above to fill in the job details automatically where possible.</p>
+<div class="grid2">
+<label>Platform
+<select id="platform">
 <option>Amazon Flex</option>
 <option>Sherpa</option>
 <option>Dasher</option>
 <option>Didi Driver</option>
-</select>
-<input id="customer" placeholder="Customer / Restaurant / Job Name">
-<input id="address" placeholder="Delivery Address">
-<input id="phone" placeholder="Payout ($) & Distance (km)">
-<select id="status">
-<option>Pending</option>
-<option>Completed</option>
-</select>
-<button onclick="addDelivery()">Add Delivery</button>
+</select></label>
+<label>Job payment ($)
+<input id="pay" type="number" step="0.01" placeholder="e.g. 85"></label>
+<label>Distance (km)
+<input id="km" type="number" step="0.1" placeholder="e.g. 45"></label>
+<label>Time (minutes)
+<input id="minutes" type="number" placeholder="e.g. 120"></label>
 </div>
+<label>Job details
+<input id="details" placeholder="Job name / pickup / notification details"></label>
+<button onclick="addJob()">Add Job to Comparison</button>
+<div id="estimate" class="small">Enter payment, distance and time to calculate.</div>
+</section>
 
+<section class="panel">
+<h2>🏆 Job Comparison & Ranking</h2>
 <div class="cards">
-<div class="card"><h3>Total Deliveries</h3><div class="number" id="total">0</div></div>
-<div class="card"><h3>Completed</h3><div class="number" id="completed">0</div></div>
-<div class="card"><h3>Pending</h3><div class="number" id="pending">0</div></div>
+<div class="card"><h3>Best Net Profit</h3><div class="num" id="bestProfit">$0</div></div>
+<div class="card"><h3>Best Hourly Rate</h3><div class="num" id="bestHourly">$0</div></div>
+<div class="card"><h3>Jobs Compared</h3><div class="num" id="jobCount">0</div></div>
 </div>
-
-<div class="panel">
-<h2>Manual Delivery Records</h2>
-<div class="table-wrap">
+<div class="tablewrap">
 <table>
 <thead>
-<tr><th>Platform</th><th>Name</th><th>Address</th><th>Pay / Distance</th><th>Status</th></tr>
+<tr>
+<th>Rank</th><th>Platform</th><th>Pay</th><th>KM</th><th>Time</th>
+<th>Costs</th><th>Net Profit</th><th>$/Hour</th><th>Action</th>
+</tr>
 </thead>
-<tbody id="records"></tbody>
+<tbody id="jobRows"></tbody>
 </table>
 </div>
-</div>
-</div>
+</section>
+
+<section class="panel">
+<h2>📷 Screenshot Scanner</h2>
+<input type="file" id="photo" accept="image/*">
+<button class="dark" onclick="scanPhoto()">Scan Screenshot</button>
+<div id="scanStatus" class="small"></div>
+</section>
+
+<section class="panel">
+<h2>Manual Delivery Records</h2>
+<input id="oldName" placeholder="Customer / restaurant">
+<input id="oldAddress" placeholder="Delivery address">
+<input id="oldPay" placeholder="Payment / distance">
+<select id="oldStatus"><option>Pending</option><option>Completed</option></select>
+<button onclick="addRecord()">Add Record</button>
+<div id="oldRecords"></div>
+</section>
+
+</main>
 
 <script>
-const API_URL="https://delivery-job-catcher.australianarinder1988.workers.dev";
-let notifications=[];
-let deliveries=JSON.parse(localStorage.getItem("deliveries")||"[]");
+const API="https://delivery-job-catcher.australianarinder1988.workers.dev";
 
-function escapeHTML(value){
-return String(value??"").replace(/[&<>'"]/g,c=>({
+let notifications=[];
+let jobs=JSON.parse(localStorage.getItem("dc_jobs")||"[]");
+let records=JSON.parse(localStorage.getItem("dc_records")||"[]");
+
+function el(id){return document.getElementById(id)}
+function money(n){return "$"+Number(n||0).toFixed(2)}
+function safe(v){
+return String(v??"").replace(/[&<>'"]/g,c=>({
 "&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"
 })[c]);
 }
 
 async function loadNotifications(){
-const token=document.getElementById("apiToken").value.trim();
-const status=document.getElementById("connection");
-
-if(!token){status.textContent="Please enter API token";return;}
-
-status.textContent="Connecting...";
-
+const token=el("apiToken").value.trim();
+if(!token){el("connection").textContent="Enter API token first.";return}
+el("connection").textContent="Connecting...";
 try{
-const response=await fetch(API_URL+"/api/notifications",{
-headers:{"Authorization":"Bearer "+token}
+const r=await fetch(API+"/api/notifications",{
+headers:{"Authorization":"Bearer "+token},
+cache:"no-store"
 });
-const data=await response.json();
-
-if(!response.ok){
-status.textContent="Error: "+(data.error||response.status);
-return;
-}
-
+const data=await r.json();
+if(!r.ok)throw new Error(data.error||r.status);
 notifications=data.notifications||[];
-status.textContent="Connected! "+notifications.length+" notifications loaded.";
+el("connection").textContent="Connected successfully. "+notifications.length+" notifications loaded.";
 updateCounts();
-renderNotifications();
-
-}catch(error){
-status.textContent="Connection failed. Check internet or Worker.";
+showNotifications();
+}catch(e){
+el("connection").textContent="Connection error: "+e.message;
 }
 }
 
 function updateCounts(){
-document.getElementById("totalNotifications").textContent=notifications.length;
-document.getElementById("amazonCount").textContent=notifications.filter(n=>n.platform==="Amazon Flex").length;
-document.getElementById("sherpaCount").textContent=notifications.filter(n=>n.platform==="Sherpa").length;
-document.getElementById("dasherCount").textContent=notifications.filter(n=>n.platform==="Dasher").length;
-document.getElementById("didiCount").textContent=notifications.filter(n=>n.platform==="Didi Driver").length;
+el("totalN").textContent=notifications.length;
+el("amazonN").textContent=notifications.filter(x=>x.platform==="Amazon Flex").length;
+el("sherpaN").textContent=notifications.filter(x=>x.platform==="Sherpa").length;
+el("dasherN").textContent=notifications.filter(x=>x.platform==="Dasher").length;
+el("didiN").textContent=notifications.filter(x=>x.platform==="Didi Driver").length;
 }
 
-function renderNotifications(){
-const filter=document.getElementById("platformFilter").value;
-const list=filter==="All"?notifications:notifications.filter(n=>n.platform===filter);
-const box=document.getElementById("notifications");
+function parseJob(text){
+const moneyMatch=text.match(/\$\s?(\d+(?:\.\d{1,2})?)/);
+const kmMatch=text.match(/(\d+(?:\.\d+)?)\s?(?:km|kilometres|kilometers)\b/i);
+const minMatch=text.match(/(\d+(?:\.\d+)?)\s?(?:min|mins|minutes)\b/i);
+const hourMatch=text.match(/(\d+(?:\.\d+)?)\s?(?:hours|hour|hrs|hr)\b/i);
+return{
+pay:moneyMatch?moneyMatch[1]:"",
+km:kmMatch?kmMatch[1]:"",
+minutes:minMatch?minMatch[1]:(hourMatch?Number(hourMatch[1])*60:"")
+};
+}
 
-if(!list.length){box.innerHTML="<p>No notifications found.</p>";return;}
+function useNotification(i){
+const n=notifications[i];
+const parsed=parseJob(n.body||"");
+el("platform").value=n.platform||"Amazon Flex";
+el("pay").value=parsed.pay;
+el("km").value=parsed.km;
+el("minutes").value=parsed.minutes;
+el("details").value=n.body||"";
+el("estimate").textContent="Notification selected. Check the extracted values and correct them if needed.";
+window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"});
+calculateEstimate();
+}
 
-box.innerHTML=list.map(n=>`
+function showNotifications(){
+const filter=el("filter").value;
+const list=notifications.map((n,i)=>({...n,index:i}))
+.filter(n=>filter==="All"||n.platform===filter);
+if(!list.length){el("notifications").innerHTML="<p>No notifications found.</p>";return}
+el("notifications").innerHTML=list.map(n=>`
 <div class="offer">
-<strong>${escapeHTML(n.platform)}</strong>
-<p>${escapeHTML(n.body)}</p>
-<div class="small">${escapeHTML(n.received_at)}</div>
+<strong>${safe(n.platform)}</strong>
+<p>${safe(n.body)}</p>
+<div class="small">${safe(n.received_at||"")}</div>
+<button onclick="useNotification(${n.index})">Use this job for comparison</button>
 </div>`).join("");
 }
 
-function render(){
-document.getElementById("total").textContent=deliveries.length;
-document.getElementById("completed").textContent=deliveries.filter(d=>d.status==="Completed").length;
-document.getElementById("pending").textContent=deliveries.filter(d=>d.status==="Pending").length;
+function costs(km){
+const fuel=Number(el("fuelPrice").value)||0;
+const consumption=Number(el("fuelUse").value)||0;
+const maintenance=Number(el("maintenance").value)||0;
+const petrolCost=km*consumption/100*fuel;
+const maintenanceCost=km*maintenance;
+return{petrolCost,maintenanceCost,total:petrolCost+maintenanceCost};
+}
 
-document.getElementById("records").innerHTML=deliveries.map(d=>`
-<tr>
-<td>${escapeHTML(d.platform)}</td>
-<td>${escapeHTML(d.customer)}</td>
-<td>${escapeHTML(d.address)}</td>
-<td>${escapeHTML(d.phone)}</td>
-<td>${escapeHTML(d.status)}</td>
+function calculate(pay,km,minutes){
+const c=costs(km);
+const net=pay-c.total;
+const hours=minutes/60;
+return{
+petrol:c.petrolCost,
+maintenance:c.maintenanceCost,
+cost:c.total,
+net,
+hourly:hours>0?net/hours:0,
+perKm:km>0?net/km:0
+};
+}
+
+function calculateEstimate(){
+const pay=Number(el("pay").value)||0;
+const km=Number(el("km").value)||0;
+const minutes=Number(el("minutes").value)||0;
+if(!pay||!km||!minutes){
+el("estimate").textContent="Enter payment, distance and time to calculate.";
+return;
+}
+const c=calculate(pay,km,minutes);
+el("estimate").innerHTML=
+"Petrol: "+money(c.petrol)+" | Maintenance: "+money(c.maintenance)+
+" | Total costs: "+money(c.cost)+" | <strong>Estimated net: "+money(c.net)+
+"</strong> | Hourly: "+money(c.hourly);
+}
+
+["pay","km","minutes","fuelPrice","fuelUse","maintenance"].forEach(id=>{
+el(id).addEventListener("input",calculateEstimate);
+});
+
+function addJob(){
+const platform=el("platform").value;
+const pay=Number(el("pay").value);
+const km=Number(el("km").value);
+const minutes=Number(el("minutes").value);
+const details=el("details").value.trim();
+
+if(pay<=0||km<=0||minutes<=0){
+alert("Please enter valid payment, distance and time.");
+return;
+}
+jobs.push({
+id:Date.now(),platform,pay,km,minutes,details
+});
+saveJobs();
+renderJobs();
+el("pay").value="";
+el("km").value="";
+el("minutes").value="";
+el("details").value="";
+el("estimate").textContent="Job added to comparison.";
+}
+
+function saveJobs(){
+localStorage.setItem("dc_jobs",JSON.stringify(jobs));
+}
+
+function updateJobs(){
+renderJobs();
+calculateEstimate();
+}
+
+function deleteJob(id){
+jobs=jobs.filter(j=>j.id!==id);
+saveJobs();
+renderJobs();
+}
+
+function renderJobs(){
+const ranked=jobs.map(j=>({...j,...calculate(j.pay,j.km,j.minutes)}))
+.sort((a,b)=>b.net-a.net);
+
+el("jobCount").textContent=ranked.length;
+el("bestProfit").textContent=ranked.length?money(ranked[0].net):"$0";
+el("bestHourly").textContent=ranked.length?
+money(Math.max(...ranked.map(j=>j.hourly))):"$0";
+
+if(!ranked.length){
+el("jobRows").innerHTML="<tr><td colspan='9'>No jobs added yet.</td></tr>";
+return;
+}
+
+el("jobRows").innerHTML=ranked.map((j,i)=>`
+<tr class="${i===0?"best":""}">
+<td>${i===0?"🏆":i+1}</td>
+<td>${safe(j.platform)}</td>
+<td>${money(j.pay)}</td>
+<td>${j.km}</td>
+<td>${j.minutes} min</td>
+<td>${money(j.cost)}</td>
+<td class="${j.net>=0?"profit":"loss"}">${money(j.net)}</td>
+<td>${money(j.hourly)}</td>
+<td><button class="red" onclick="deleteJob(${j.id})">Delete</button></td>
 </tr>`).join("");
-
-localStorage.setItem("deliveries",JSON.stringify(deliveries));
 }
 
-function addDelivery(){
-const platform=document.getElementById("customerPlatform").value;
-const customer=document.getElementById("customer").value.trim();
-const address=document.getElementById("address").value.trim();
-const phone=document.getElementById("phone").value.trim();
-const status=document.getElementById("status").value;
-
-if(!customer||!address||!phone){alert("Please fill all fields");return;}
-
-deliveries.push({platform,customer,address,phone,status});
-document.getElementById("customer").value="";
-document.getElementById("address").value="";
-document.getElementById("phone").value="";
-document.getElementById("status").value="Pending";
-render();
-alert("Delivery added successfully!");
+function addRecord(){
+const name=el("oldName").value.trim();
+const address=el("oldAddress").value.trim();
+const pay=el("oldPay").value.trim();
+const status=el("oldStatus").value;
+if(!name){alert("Enter customer or restaurant name.");return}
+records.push({name,address,pay,status});
+localStorage.setItem("dc_records",JSON.stringify(records));
+el("oldName").value="";
+el("oldAddress").value="";
+el("oldPay").value="";
+renderRecords();
 }
 
-async function scanScreenshot(){
-const file=document.getElementById("screenshotInput").files[0];
-if(!file)return;
+function renderRecords(){
+el("oldRecords").innerHTML=records.map((r,i)=>`
+<div class="offer">
+<strong>${safe(r.name)}</strong> — ${safe(r.status)}
+<p>${safe(r.address)} | ${safe(r.pay)}</p>
+<button class="red" onclick="deleteRecord(${i})">Delete</button>
+</div>`).join("")||"<p>No manual records yet.</p>";
+}
 
-const status=document.getElementById("scanStatus");
-status.textContent="Scanning screenshot...";
+function deleteRecord(i){
+records.splice(i,1);
+localStorage.setItem("dc_records",JSON.stringify(records));
+renderRecords();
+}
 
+async function scanPhoto(){
+const file=el("photo").files[0];
+if(!file){alert("Choose a screenshot first.");return}
+el("scanStatus").textContent="Scanning screenshot...";
 try{
+if(!window.Tesseract){
+await loadOCR();
+}
 const result=await Tesseract.recognize(file,"eng");
 const text=result.data.text;
-const lines=text.split("\n").map(x=>x.trim()).filter(x=>x.length>2);
-const price=text.match(/\$\s?\d+(\.\d{2})?/);
-const distance=text.match(/\d+(\.\d+)?\s?(km|mi|miles)/i);
-
-document.getElementById("customer").value=lines.find(x=>!x.includes("$"))||"Delivery Job";
-document.getElementById("address").value=lines.find(x=>/\d+\s+\w+.*(St|Rd|Ave|Dr|Way|Ct|Ln)/i.test(x))||"";
-document.getElementById("phone").value=[price?price[0]:"",distance?distance[0]:""].filter(Boolean).join(" | ");
-status.textContent="Scan completed. Please check extracted details.";
-}catch(error){
-status.textContent="Scan failed. Enter details manually.";
+const p=parseJob(text);
+el("pay").value=p.pay;
+el("km").value=p.km;
+el("minutes").value=p.minutes;
+el("details").value=text.trim().slice(0,500);
+calculateEstimate();
+el("scanStatus").textContent="Scan complete. Check the extracted details before adding.";
+}catch(e){
+el("scanStatus").textContent="Scanner could not read image. Enter details manually.";
 }
 }
 
-render();
+function loadOCR(){
+return new Promise((resolve,reject)=>{
+const s=document.createElement("script");
+s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+s.onload=resolve;
+s.onerror=reject;
+document.head.appendChild(s);
+});
+}
+
+renderJobs();
+renderRecords();
 </script>
 </body>
 </html>
