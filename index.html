@@ -1,48 +1,35 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#172554">
+<meta name="description" content="Delivery notifications, job comparison and profit calculator.">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-192.png">
 <title>Delivery Job Catcher PRO</title>
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#f1f5f9;color:#172033;font-family:Arial}
-header{background:#172554;color:white;text-align:center;padding:20px}
-main{max-width:1100px;margin:auto;padding:14px}
-.panel,.card{background:white;border-radius:12px;padding:16px;margin-bottom:14px;box-shadow:0 2px 6px #0001}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px}
-.card h3{font-size:13px;color:#64748b;margin:0 0 8px}
-.num{font-size:25px;font-weight:bold}
+*{box-sizing:border-box}body{margin:0;background:#f1f5f9;color:#172033;font-family:Arial,sans-serif}
+header{background:#172554;color:#fff;text-align:center;padding:20px 14px}header h1{margin:0 0 8px;font-size:25px}
+main{max-width:1100px;margin:auto;padding:14px}.panel,.card{background:#fff;border-radius:12px;padding:16px;margin-bottom:14px;box-shadow:0 2px 6px #0001}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}.card h3{font-size:13px;color:#64748b;margin:0 0 8px}.num{font-size:25px;font-weight:bold}
 input,select,button{width:100%;padding:12px;margin:5px 0;border:1px solid #cbd5e1;border-radius:7px;font-size:15px}
-button{background:#2563eb;color:white;border:0;font-weight:bold;cursor:pointer}
-.green{background:#059669}.dark{background:#334155}.red{background:#dc2626}
-.small{font-size:12px;color:#64748b}
-.offer,.job{border-bottom:1px solid #e2e8f0;padding:12px 0}
-.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
-.tablewrap{overflow-x:auto}
-table{border-collapse:collapse;width:100%;min-width:650px}
-td,th{padding:10px;border-bottom:1px solid #e2e8f0;text-align:left;font-size:13px}
-th{background:#eff6ff}
-.best{background:#dcfce7}
-.profit{color:#047857;font-weight:bold}
-.loss{color:#dc2626;font-weight:bold}
-.hidden{display:none}
+button{background:#2563eb;color:#fff;border:0;font-weight:bold;cursor:pointer}.green{background:#059669}.dark{background:#334155}.red{background:#dc2626}
+.small{font-size:12px;color:#64748b}.offer,.record{border-bottom:1px solid #e2e8f0;padding:12px 0}.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px}
+.tablewrap{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:700px}td,th{padding:10px;border-bottom:1px solid #e2e8f0;text-align:left;font-size:13px}th{background:#eff6ff}
+.best{background:#dcfce7}.profit{color:#047857;font-weight:bold}.loss{color:#dc2626;font-weight:bold}
+.row{display:flex;gap:8px;align-items:center}.row button{width:auto;white-space:nowrap}.status{padding:9px;border-radius:7px;background:#eff6ff;margin-top:8px}
 </style>
 </head>
 <body>
-<header>
-<h1>🚚 Delivery Job Catcher PRO</h1>
-<p>Amazon Flex | Sherpa | Dasher | Didi Driver</p>
-</header>
-
+<header><h1>🚚 Delivery Job Catcher PRO</h1><div>Amazon Flex · Sherpa · Dasher · Didi Driver</div></header>
 <main>
-
 <section class="panel">
 <h2>Cloudflare Connection</h2>
-<input id="apiToken" type="password" placeholder="Enter your API Token">
-<button onclick="loadNotifications()">Connect / Refresh Notifications</button>
-<div id="connection" class="small">Not connected</div>
+<p class="small">Enter the same API token you configured as the Cloudflare Worker secret. It is kept only in this page's memory and is not saved.</p>
+<input id="apiToken" type="password" autocomplete="off" placeholder="Private API Token">
+<div class="grid2"><button onclick="connectApi()">Connect / Refresh</button><button class="dark" onclick="clearToken()">Clear Token</button></div>
+<div id="connection" class="status">Not connected</div>
 </section>
 
 <section class="cards">
@@ -54,77 +41,54 @@ th{background:#eff6ff}
 </section>
 
 <section class="panel">
-<h2>⚙️ Vehicle & Running Costs</h2>
-<p class="small">Starting estimates for your Camry. Change these according to your actual costs.</p>
+<h2>Vehicle & Running Costs</h2>
+<p class="small">Starting estimates only. Adjust to your actual vehicle and costs.</p>
 <div class="grid2">
-<label>Petrol price ($/litre)
-<input id="fuelPrice" type="number" value="1.90" step="0.01"></label>
-<label>Fuel consumption (L/100 km)
-<input id="fuelUse" type="number" value="8" step="0.1"></label>
-<label>Maintenance ($/km)
-<input id="maintenance" type="number" value="0.12" step="0.01"></label>
+<label>Petrol price ($/litre)<input id="fuelPrice" type="number" value="1.90" step="0.01"></label>
+<label>Fuel consumption (L/100 km)<input id="fuelUse" type="number" value="8" step="0.1"></label>
+<label>Maintenance ($/km)<input id="maintenance" type="number" value="0.12" step="0.01"></label>
 </div>
-<button class="green" onclick="updateJobs()">Recalculate All Jobs</button>
+<button class="green" onclick="renderJobs();estimateJob()">Recalculate all jobs</button>
 </section>
 
 <section class="panel">
-<h2>📩 Live Notifications</h2>
-<select id="filter" onchange="showNotifications()">
-<option>All</option>
-<option>Amazon Flex</option>
-<option>Sherpa</option>
-<option>Dasher</option>
-<option>Didi Driver</option>
+<h2>Live Notifications</h2>
+<select id="filter" onchange="renderNotifications()">
+<option>All</option><option>Amazon Flex</option><option>Sherpa</option><option>Dasher</option><option>Didi Driver</option>
 </select>
 <div id="notifications">Connect to load notifications.</div>
 </section>
 
 <section class="panel">
-<h2>➕ Add / Compare a Job</h2>
-<p class="small">Select a notification above to fill in the job details automatically where possible.</p>
+<h2>Add / Compare a Job</h2>
+<p class="small">Select a notification to prefill details when the message contains recognisable values. Always check and correct the fields.</p>
 <div class="grid2">
-<label>Platform
-<select id="platform">
-<option>Amazon Flex</option>
-<option>Sherpa</option>
-<option>Dasher</option>
-<option>Didi Driver</option>
-</select></label>
-<label>Job payment ($)
-<input id="pay" type="number" step="0.01" placeholder="e.g. 85"></label>
-<label>Distance (km)
-<input id="km" type="number" step="0.1" placeholder="e.g. 45"></label>
-<label>Time (minutes)
-<input id="minutes" type="number" placeholder="e.g. 120"></label>
+<label>Platform<select id="platform"><option>Amazon Flex</option><option>Sherpa</option><option>Dasher</option><option>Didi Driver</option></select></label>
+<label>Payment ($)<input id="pay" type="number" min="0" step="0.01" placeholder="e.g. 100"></label>
+<label>Distance (km)<input id="km" type="number" min="0" step="0.1" placeholder="e.g. 50"></label>
+<label>Duration (minutes)<input id="minutes" type="number" min="0" step="1" placeholder="e.g. 120"></label>
 </div>
-<label>Job details
-<input id="details" placeholder="Job name / pickup / notification details"></label>
+<label>Job details<textarea id="details" rows="3" style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:7px" placeholder="Pickup, drop-off or notification details"></textarea></label>
+<div id="estimate" class="status">Enter payment, distance and duration for an estimate.</div>
 <button onclick="addJob()">Add Job to Comparison</button>
-<div id="estimate" class="small">Enter payment, distance and time to calculate.</div>
 </section>
 
 <section class="panel">
-<h2>🏆 Job Comparison & Ranking</h2>
+<h2>Job Comparison & Ranking</h2>
 <div class="cards">
-<div class="card"><h3>Best Net Profit</h3><div class="num" id="bestProfit">$0</div></div>
-<div class="card"><h3>Best Hourly Rate</h3><div class="num" id="bestHourly">$0</div></div>
+<div class="card"><h3>Best Estimated Net Profit</h3><div class="num" id="bestProfit">$0.00</div></div>
+<div class="card"><h3>Best Estimated Hourly Rate</h3><div class="num" id="bestHourly">$0.00</div></div>
 <div class="card"><h3>Jobs Compared</h3><div class="num" id="jobCount">0</div></div>
 </div>
-<div class="tablewrap">
-<table>
-<thead>
-<tr>
-<th>Rank</th><th>Platform</th><th>Pay</th><th>KM</th><th>Time</th>
-<th>Costs</th><th>Net Profit</th><th>$/Hour</th><th>Action</th>
-</tr>
-</thead>
+<div class="tablewrap"><table>
+<thead><tr><th>Rank</th><th>Platform</th><th>Pay</th><th>KM</th><th>Time</th><th>Petrol</th><th>Maintenance</th><th>Net</th><th>$/Hour</th><th>Action</th></tr></thead>
 <tbody id="jobRows"></tbody>
-</table>
-</div>
+</table></div>
+<p class="small">Ranking is based on estimated net profit after the configured fuel and maintenance costs. It does not include tolls, parking, tax, unpaid travel not entered, or other expenses.</p>
 </section>
 
 <section class="panel">
-<h2>📷 Screenshot Scanner</h2>
+<h2>Screenshot Scanner (optional)</h2>
 <input type="file" id="photo" accept="image/*">
 <button class="dark" onclick="scanPhoto()">Scan Screenshot</button>
 <div id="scanStatus" class="small"></div>
@@ -132,269 +96,106 @@ th{background:#eff6ff}
 
 <section class="panel">
 <h2>Manual Delivery Records</h2>
-<input id="oldName" placeholder="Customer / restaurant">
+<input id="oldName" placeholder="Customer / restaurant / job name">
 <input id="oldAddress" placeholder="Delivery address">
-<input id="oldPay" placeholder="Payment / distance">
+<input id="oldPay" placeholder="Payment / distance notes">
 <select id="oldStatus"><option>Pending</option><option>Completed</option></select>
-<button onclick="addRecord()">Add Record</button>
+<button onclick="addRecord()">Add Delivery Record</button>
 <div id="oldRecords"></div>
 </section>
-
+<footer class="small" style="text-align:center;padding:15px">Delivery Job Catcher PRO · Estimates are for comparison only.</footer>
 </main>
-
 <script>
-const API="https://delivery-job-catcher.australianarinder1988.workers.dev";
-
+const API_URL="https://delivery-job-catcher.australianarinder1988.workers.dev";
 let notifications=[];
 let jobs=JSON.parse(localStorage.getItem("dc_jobs")||"[]");
 let records=JSON.parse(localStorage.getItem("dc_records")||"[]");
-
 function el(id){return document.getElementById(id)}
 function money(n){return "$"+Number(n||0).toFixed(2)}
-function safe(v){
-return String(v??"").replace(/[&<>'"]/g,c=>({
-"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"
-})[c]);
+function safe(v){return String(v??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]))}
+function clearToken(){el("apiToken").value="";notifications=[];updateCounts();renderNotifications();el("connection").textContent="Token cleared."}
+async function connectApi(){
+ const token=el("apiToken").value.trim();if(!token){el("connection").textContent="Please enter your API token.";return}
+ el("connection").textContent="Connecting...";
+ try{
+  const response=await fetch(API_URL+"/api/notifications",{headers:{"Authorization":"Bearer "+token},cache:"no-store"});
+  const data=await response.json();if(!response.ok)throw new Error(data.error||"HTTP "+response.status);
+  notifications=Array.isArray(data.notifications)?data.notifications:[];
+  el("connection").textContent="Connected. "+notifications.length+" notifications loaded.";
+  updateCounts();renderNotifications();
+ }catch(e){el("connection").textContent="Connection failed: "+e.message}
 }
-
-async function loadNotifications(){
-const token=el("apiToken").value.trim();
-if(!token){el("connection").textContent="Enter API token first.";return}
-el("connection").textContent="Connecting...";
-try{
-const r=await fetch(API+"/api/notifications",{
-headers:{"Authorization":"Bearer "+token},
-cache:"no-store"
-});
-const data=await r.json();
-if(!r.ok)throw new Error(data.error||r.status);
-notifications=data.notifications||[];
-el("connection").textContent="Connected successfully. "+notifications.length+" notifications loaded.";
-updateCounts();
-showNotifications();
-}catch(e){
-el("connection").textContent="Connection error: "+e.message;
-}
-}
-
 function updateCounts(){
-el("totalN").textContent=notifications.length;
-el("amazonN").textContent=notifications.filter(x=>x.platform==="Amazon Flex").length;
-el("sherpaN").textContent=notifications.filter(x=>x.platform==="Sherpa").length;
-el("dasherN").textContent=notifications.filter(x=>x.platform==="Dasher").length;
-el("didiN").textContent=notifications.filter(x=>x.platform==="Didi Driver").length;
+ el("totalN").textContent=notifications.length;
+ ["Amazon Flex","Sherpa","Dasher","Didi Driver"].forEach((p,i)=>el(["amazonN","sherpaN","dasherN","didiN"][i]).textContent=notifications.filter(n=>n.platform===p).length);
 }
-
 function parseJob(text){
-const moneyMatch=text.match(/\$\s?(\d+(?:\.\d{1,2})?)/);
-const kmMatch=text.match(/(\d+(?:\.\d+)?)\s?(?:km|kilometres|kilometers)\b/i);
-const minMatch=text.match(/(\d+(?:\.\d+)?)\s?(?:min|mins|minutes)\b/i);
-const hourMatch=text.match(/(\d+(?:\.\d+)?)\s?(?:hours|hour|hrs|hr)\b/i);
-return{
-pay:moneyMatch?moneyMatch[1]:"",
-km:kmMatch?kmMatch[1]:"",
-minutes:minMatch?minMatch[1]:(hourMatch?Number(hourMatch[1])*60:"")
-};
+ const pay=text.match(/\$\s?(\d+(?:\.\d{1,2})?)/);
+ const km=text.match(/(\d+(?:\.\d+)?)\s?(?:km|kilometres|kilometers)\b/i);
+ const mins=text.match(/(\d+(?:\.\d+)?)\s?(?:min|mins|minutes)\b/i);
+ const hours=text.match(/(\d+(?:\.\d+)?)\s?(?:hours|hour|hrs|hr)\b/i);
+ return {pay:pay?pay[1]:"",km:km?km[1]:"",minutes:mins?mins[1]:(hours?Number(hours[1])*60:"")};
 }
-
-function useNotification(i){
-const n=notifications[i];
-const parsed=parseJob(n.body||"");
-el("platform").value=n.platform||"Amazon Flex";
-el("pay").value=parsed.pay;
-el("km").value=parsed.km;
-el("minutes").value=parsed.minutes;
-el("details").value=n.body||"";
-el("estimate").textContent="Notification selected. Check the extracted values and correct them if needed.";
-window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"});
-calculateEstimate();
+function selectNotification(index){
+ const n=notifications[index],p=parseJob(n.body||"");
+ el("platform").value=n.platform||"Amazon Flex";el("pay").value=p.pay;el("km").value=p.km;el("minutes").value=p.minutes;el("details").value=n.body||"";
+ estimateJob();document.querySelector("#platform").scrollIntoView({behavior:"smooth",block:"center"});
 }
-
-function showNotifications(){
-const filter=el("filter").value;
-const list=notifications.map((n,i)=>({...n,index:i}))
-.filter(n=>filter==="All"||n.platform===filter);
-if(!list.length){el("notifications").innerHTML="<p>No notifications found.</p>";return}
-el("notifications").innerHTML=list.map(n=>`
-<div class="offer">
-<strong>${safe(n.platform)}</strong>
-<p>${safe(n.body)}</p>
-<div class="small">${safe(n.received_at||"")}</div>
-<button onclick="useNotification(${n.index})">Use this job for comparison</button>
-</div>`).join("");
+function renderNotifications(){
+ const f=el("filter").value,arr=notifications.map((n,i)=>({...n,index:i})).filter(n=>f==="All"||n.platform===f);
+ if(!arr.length){el("notifications").textContent="No notifications found.";return}
+ el("notifications").innerHTML=arr.map(n=>`<div class="offer"><b>${safe(n.platform)}</b><p>${safe(n.body)}</p><div class="small">${safe(n.received_at||"")}</div><button onclick="selectNotification(${n.index})">Use this job</button></div>`).join("");
 }
-
-function costs(km){
-const fuel=Number(el("fuelPrice").value)||0;
-const consumption=Number(el("fuelUse").value)||0;
-const maintenance=Number(el("maintenance").value)||0;
-const petrolCost=km*consumption/100*fuel;
-const maintenanceCost=km*maintenance;
-return{petrolCost,maintenanceCost,total:petrolCost+maintenanceCost};
+function costFor(km){
+ const fuel=Number(el("fuelPrice").value)||0,cons=Number(el("fuelUse").value)||0,maint=Number(el("maintenance").value)||0;
+ const petrol=km*cons/100*fuel,maintenance=km*maint;return {petrol,maintenance,total:petrol+maintenance};
 }
-
-function calculate(pay,km,minutes){
-const c=costs(km);
-const net=pay-c.total;
-const hours=minutes/60;
-return{
-petrol:c.petrolCost,
-maintenance:c.maintenanceCost,
-cost:c.total,
-net,
-hourly:hours>0?net/hours:0,
-perKm:km>0?net/km:0
-};
+function calc(pay,km,minutes){
+ const c=costFor(km),net=pay-c.total,hours=minutes/60;
+ return {...c,net,hourly:hours>0?net/hours:0,perKm:km>0?net/km:0};
 }
-
-function calculateEstimate(){
-const pay=Number(el("pay").value)||0;
-const km=Number(el("km").value)||0;
-const minutes=Number(el("minutes").value)||0;
-if(!pay||!km||!minutes){
-el("estimate").textContent="Enter payment, distance and time to calculate.";
-return;
+function estimateJob(){
+ const pay=Number(el("pay").value),km=Number(el("km").value),minutes=Number(el("minutes").value);
+ if(!(pay>0&&km>0&&minutes>0)){el("estimate").textContent="Enter valid payment, distance and duration.";return}
+ const c=calc(pay,km,minutes);
+ el("estimate").textContent=`Petrol ${money(c.petrol)} · Maintenance ${money(c.maintenance)} · Total costs ${money(c.total)} · Estimated net ${money(c.net)} · Hourly ${money(c.hourly)}`;
 }
-const c=calculate(pay,km,minutes);
-el("estimate").innerHTML=
-"Petrol: "+money(c.petrol)+" | Maintenance: "+money(c.maintenance)+
-" | Total costs: "+money(c.cost)+" | <strong>Estimated net: "+money(c.net)+
-"</strong> | Hourly: "+money(c.hourly);
-}
-
-["pay","km","minutes","fuelPrice","fuelUse","maintenance"].forEach(id=>{
-el(id).addEventListener("input",calculateEstimate);
-});
-
+["pay","km","minutes","fuelPrice","fuelUse","maintenance"].forEach(id=>el(id).addEventListener("input",estimateJob));
 function addJob(){
-const platform=el("platform").value;
-const pay=Number(el("pay").value);
-const km=Number(el("km").value);
-const minutes=Number(el("minutes").value);
-const details=el("details").value.trim();
-
-if(pay<=0||km<=0||minutes<=0){
-alert("Please enter valid payment, distance and time.");
-return;
+ const pay=Number(el("pay").value),km=Number(el("km").value),minutes=Number(el("minutes").value);
+ if(!(pay>0&&km>0&&minutes>0)){alert("Enter payment, distance and duration greater than zero.");return}
+ jobs.push({id:Date.now(),platform:el("platform").value,pay,km,minutes,details:el("details").value.trim()});
+ localStorage.setItem("dc_jobs",JSON.stringify(jobs));renderJobs();
+ el("pay").value="";el("km").value="";el("minutes").value="";el("details").value="";el("estimate").textContent="Job added.";
 }
-jobs.push({
-id:Date.now(),platform,pay,km,minutes,details
-});
-saveJobs();
-renderJobs();
-el("pay").value="";
-el("km").value="";
-el("minutes").value="";
-el("details").value="";
-el("estimate").textContent="Job added to comparison.";
-}
-
-function saveJobs(){
-localStorage.setItem("dc_jobs",JSON.stringify(jobs));
-}
-
-function updateJobs(){
-renderJobs();
-calculateEstimate();
-}
-
-function deleteJob(id){
-jobs=jobs.filter(j=>j.id!==id);
-saveJobs();
-renderJobs();
-}
-
+function deleteJob(id){jobs=jobs.filter(j=>j.id!==id);localStorage.setItem("dc_jobs",JSON.stringify(jobs));renderJobs()}
 function renderJobs(){
-const ranked=jobs.map(j=>({...j,...calculate(j.pay,j.km,j.minutes)}))
-.sort((a,b)=>b.net-a.net);
-
-el("jobCount").textContent=ranked.length;
-el("bestProfit").textContent=ranked.length?money(ranked[0].net):"$0";
-el("bestHourly").textContent=ranked.length?
-money(Math.max(...ranked.map(j=>j.hourly))):"$0";
-
-if(!ranked.length){
-el("jobRows").innerHTML="<tr><td colspan='9'>No jobs added yet.</td></tr>";
-return;
+ const arr=jobs.map(j=>({...j,...calc(j.pay,j.km,j.minutes)})).sort((a,b)=>b.net-a.net);
+ el("jobCount").textContent=arr.length;el("bestProfit").textContent=arr.length?money(arr[0].net):"$0.00";
+ el("bestHourly").textContent=arr.length?money(Math.max(...arr.map(j=>j.hourly))):"$0.00";
+ el("jobRows").innerHTML=arr.length?arr.map((j,i)=>`<tr class="${i===0?"best":""}"><td>${i===0?"🏆":i+1}</td><td>${safe(j.platform)}</td><td>${money(j.pay)}</td><td>${j.km}</td><td>${j.minutes} min</td><td>${money(j.petrol)}</td><td>${money(j.maintenance)}</td><td class="${j.net>=0?"profit":"loss"}">${money(j.net)}</td><td>${money(j.hourly)}</td><td><button class="red" onclick="deleteJob(${j.id})">Delete</button></td></tr>`).join(""):"<tr><td colspan='10'>No jobs added yet.</td></tr>";
 }
-
-el("jobRows").innerHTML=ranked.map((j,i)=>`
-<tr class="${i===0?"best":""}">
-<td>${i===0?"🏆":i+1}</td>
-<td>${safe(j.platform)}</td>
-<td>${money(j.pay)}</td>
-<td>${j.km}</td>
-<td>${j.minutes} min</td>
-<td>${money(j.cost)}</td>
-<td class="${j.net>=0?"profit":"loss"}">${money(j.net)}</td>
-<td>${money(j.hourly)}</td>
-<td><button class="red" onclick="deleteJob(${j.id})">Delete</button></td>
-</tr>`).join("");
-}
-
 function addRecord(){
-const name=el("oldName").value.trim();
-const address=el("oldAddress").value.trim();
-const pay=el("oldPay").value.trim();
-const status=el("oldStatus").value;
-if(!name){alert("Enter customer or restaurant name.");return}
-records.push({name,address,pay,status});
-localStorage.setItem("dc_records",JSON.stringify(records));
-el("oldName").value="";
-el("oldAddress").value="";
-el("oldPay").value="";
-renderRecords();
+ const name=el("oldName").value.trim();if(!name){alert("Enter a job or customer name.");return}
+ records.push({name,address:el("oldAddress").value.trim(),pay:el("oldPay").value.trim(),status:el("oldStatus").value});
+ localStorage.setItem("dc_records",JSON.stringify(records));["oldName","oldAddress","oldPay"].forEach(id=>el(id).value="");renderRecords();
 }
-
+function deleteRecord(i){records.splice(i,1);localStorage.setItem("dc_records",JSON.stringify(records));renderRecords()}
 function renderRecords(){
-el("oldRecords").innerHTML=records.map((r,i)=>`
-<div class="offer">
-<strong>${safe(r.name)}</strong> — ${safe(r.status)}
-<p>${safe(r.address)} | ${safe(r.pay)}</p>
-<button class="red" onclick="deleteRecord(${i})">Delete</button>
-</div>`).join("")||"<p>No manual records yet.</p>";
+ el("oldRecords").innerHTML=records.map((r,i)=>`<div class="record"><b>${safe(r.name)}</b> — ${safe(r.status)}<p>${safe(r.address)} · ${safe(r.pay)}</p><button class="red" onclick="deleteRecord(${i})">Delete</button></div>`).join("")||"No manual records yet.";
 }
-
-function deleteRecord(i){
-records.splice(i,1);
-localStorage.setItem("dc_records",JSON.stringify(records));
-renderRecords();
-}
-
 async function scanPhoto(){
-const file=el("photo").files[0];
-if(!file){alert("Choose a screenshot first.");return}
-el("scanStatus").textContent="Scanning screenshot...";
-try{
-if(!window.Tesseract){
-await loadOCR();
+ const file=el("photo").files[0];if(!file){alert("Choose a screenshot first.");return}
+ el("scanStatus").textContent="Loading OCR and scanning...";
+ try{
+  if(!window.Tesseract){await new Promise((resolve,reject)=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";s.onload=resolve;s.onerror=reject;document.head.appendChild(s)})}
+  const result=await Tesseract.recognize(file,"eng"),text=result.data.text,p=parseJob(text);
+  el("pay").value=p.pay;el("km").value=p.km;el("minutes").value=p.minutes;el("details").value=text.trim().slice(0,1200);estimateJob();
+  el("scanStatus").textContent="Scan complete. Verify all fields before adding the job.";
+ }catch(e){el("scanStatus").textContent="Could not scan. Enter details manually."}
 }
-const result=await Tesseract.recognize(file,"eng");
-const text=result.data.text;
-const p=parseJob(text);
-el("pay").value=p.pay;
-el("km").value=p.km;
-el("minutes").value=p.minutes;
-el("details").value=text.trim().slice(0,500);
-calculateEstimate();
-el("scanStatus").textContent="Scan complete. Check the extracted details before adding.";
-}catch(e){
-el("scanStatus").textContent="Scanner could not read image. Enter details manually.";
-}
-}
-
-function loadOCR(){
-return new Promise((resolve,reject)=>{
-const s=document.createElement("script");
-s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
-s.onload=resolve;
-s.onerror=reject;
-document.head.appendChild(s);
-});
-}
-
-renderJobs();
-renderRecords();
+renderJobs();renderRecords();
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(e=>console.log("Service worker:",e)))}
 </script>
 </body>
 </html>
