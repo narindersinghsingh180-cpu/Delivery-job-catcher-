@@ -1,251 +1,238 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Delivery Management System</title>
-  <!-- फ्री OCR लाइब्रेरी (स्क्रीनशॉट पढ़ने के लिए) -->
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f3f5f9;
-      color: #202938;
-    }
-    header {
-      background: #172554;
-      color: white;
-      padding: 22px;
-      text-align: center;
-    }
-    .container {
-      max-width: 1000px;
-      margin: 25px auto;
-      padding: 15px;
-    }
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 15px;
-    }
-    .card {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-    .card h3 { margin: 0 0 10px 0; font-size: 16px; color: #64748b; }
-    .number { font-size: 30px; font-weight: bold; }
-    .panel {
-      background: white;
-      padding: 22px;
-      margin-top: 22px;
-      border-radius: 12px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-    input, select, button {
-      width: 100%;
-      padding: 12px;
-      margin: 7px 0;
-      border: 1px solid #cbd5e1;
-      border-radius: 7px;
-      font-size: 15px;
-    }
-    button {
-      background: #2563eb;
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    button:hover { background: #1d4ed8; }
-    .scan-box {
-      background: #eff6ff;
-      border: 2px dashed #3b82f6;
-      padding: 15px;
-      border-radius: 8px;
-      text-align: center;
-      margin-bottom: 15px;
-    }
-    .scan-btn {
-      background: #059669;
-      margin-top: 8px;
-    }
-    .scan-btn:hover { background: #047857; }
-    #scanStatus {
-      font-size: 14px;
-      color: #1e40af;
-      font-weight: bold;
-      margin-top: 8px;
-    }
-    table { width: 100%; border-collapse: collapse; }
-    th, td {
-      padding: 12px;
-      border-bottom: 1px solid #e2e8f0;
-      text-align: left;
-    }
-    .table-wrap { overflow-x: auto; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Delivery Job Catcher PRO</title>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial;background:#f1f5f9;color:#172033}
+header{background:#172554;color:white;padding:22px;text-align:center}
+.container{max-width:1100px;margin:20px auto;padding:14px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.card,.panel{background:white;padding:18px;border-radius:12px;margin-bottom:16px;box-shadow:0 2px 5px #0001}
+.card h3{font-size:14px;color:#64748b;margin:0 0 10px}
+.number{font-size:27px;font-weight:bold}
+input,select,button{width:100%;padding:12px;margin:6px 0;border:1px solid #cbd5e1;border-radius:7px;font-size:15px}
+button{background:#2563eb;color:white;border:0;font-weight:bold;cursor:pointer}
+.green{background:#059669}
+.gray{background:#475569}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:550px}
+th,td{padding:11px;border-bottom:1px solid #e2e8f0;text-align:left;font-size:14px}
+th{background:#eff6ff}
+.scan-box{background:#eff6ff;padding:14px;border:2px dashed #3b82f6;border-radius:8px;text-align:center}
+.small{font-size:13px;color:#64748b}
+#connection{font-weight:bold;margin:10px 0}
+.offer{padding:12px;border-bottom:1px solid #e2e8f0}
+</style>
 </head>
 <body>
 
-  <header>
-    <h1>Delivery Management System</h1>
-    <p>Smart DoorDash & Delivery Tracker</p>
-  </header>
+<header>
+<h1>Delivery Job Catcher PRO</h1>
+<p>Amazon Flex | Sherpa | Dasher | Didi Driver</p>
+</header>
 
-  <div class="container">
-    <div class="cards">
-      <div class="card">
-        <h3>Total Deliveries</h3>
-        <div class="number" id="total">0</div>
-      </div>
-      <div class="card">
-        <h3>Completed</h3>
-        <div class="number" id="completed">0</div>
-      </div>
-      <div class="card">
-        <h3>Pending</h3>
-        <div class="number" id="pending">0</div>
-      </div>
-    </div>
+<div class="container">
 
-    <div class="panel">
-      <h2>Add New Delivery</h2>
-      
-      <!-- नया स्क्रीनशॉट स्कैनर सेक्शन -->
-      <div class="scan-box">
-        <strong>📸 Auto-Fill from DoorDash Screenshot</strong>
-        <input type="file" id="screenshotInput" accept="image/*" style="display: none;" onchange="scanScreenshot(event)">
-        <button type="button" class="scan-btn" onclick="document.getElementById('screenshotInput').click()">
-          Upload / Scan Screenshot
-        </button>
-        <div id="scanStatus"></div>
-      </div>
+<div class="panel">
+<h2>Cloudflare Connection</h2>
+<p class="small">Enter your private API token. It will only be kept in this browser session.</p>
+<input id="apiToken" type="password" placeholder="Enter API Token">
+<button onclick="loadNotifications()">Connect & Load Notifications</button>
+<button class="gray" onclick="loadNotifications()">Refresh Notifications</button>
+<div id="connection">Not connected</div>
+</div>
 
-      <input id="customer" placeholder="Customer / Restaurant Name">
-      <input id="address" placeholder="Delivery Address">
-      <input id="phone" placeholder="Payout ($) & Distance (km)">
-      <select id="status">
-        <option value="Pending">Pending</option>
-        <option value="Completed">Completed</option>
-      </select>
-      <button onclick="addDelivery()">Add Delivery</button>
-    </div>
+<div class="cards">
+<div class="card"><h3>Total Notifications</h3><div class="number" id="totalNotifications">0</div></div>
+<div class="card"><h3>Amazon Flex</h3><div class="number" id="amazonCount">0</div></div>
+<div class="card"><h3>Sherpa</h3><div class="number" id="sherpaCount">0</div></div>
+<div class="card"><h3>Dasher</h3><div class="number" id="dasherCount">0</div></div>
+<div class="card"><h3>Didi Driver</h3><div class="number" id="didiCount">0</div></div>
+</div>
 
-    <div class="panel">
-      <h2>Delivery Records</h2>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Address</th>
-              <th>Pay / Dist</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="records"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+<div class="panel">
+<h2>Live Delivery Notifications</h2>
+<select id="platformFilter" onchange="renderNotifications()">
+<option value="All">All Platforms</option>
+<option>Amazon Flex</option>
+<option>Sherpa</option>
+<option>Dasher</option>
+<option>Didi Driver</option>
+</select>
+<div id="notifications">Connect to load notifications.</div>
+</div>
 
-  <script>
-    let deliveries = JSON.parse(localStorage.getItem("deliveries")) || [];
+<div class="panel">
+<h2>Add Manual Delivery</h2>
+<div class="scan-box">
+<strong>📸 Scan Delivery Screenshot</strong>
+<input type="file" id="screenshotInput" accept="image/*">
+<button class="green" onclick="scanScreenshot()">Upload / Scan Screenshot</button>
+<div id="scanStatus"></div>
+</div>
 
-    // स्क्रीनशॉट स्कैन करने का स्मार्ट फंक्शन
-    async function scanScreenshot(event) {
-      const file = event.target.files[0];
-      if (!file) return;
+<select id="customerPlatform">
+<option>Amazon Flex</option>
+<option>Sherpa</option>
+<option>Dasher</option>
+<option>Didi Driver</option>
+</select>
+<input id="customer" placeholder="Customer / Restaurant / Job Name">
+<input id="address" placeholder="Delivery Address">
+<input id="phone" placeholder="Payout ($) & Distance (km)">
+<select id="status">
+<option>Pending</option>
+<option>Completed</option>
+</select>
+<button onclick="addDelivery()">Add Delivery</button>
+</div>
 
-      const statusDiv = document.getElementById("scanStatus");
-      statusDiv.textContent = "⏳ Scanning screenshot... Please wait (5-10 sec)...";
+<div class="cards">
+<div class="card"><h3>Total Deliveries</h3><div class="number" id="total">0</div></div>
+<div class="card"><h3>Completed</h3><div class="number" id="completed">0</div></div>
+<div class="card"><h3>Pending</h3><div class="number" id="pending">0</div></div>
+</div>
 
-      try {
-        const result = await Tesseract.recognize(file, 'eng');
-        const text = result.data.text;
-        const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 2);
+<div class="panel">
+<h2>Manual Delivery Records</h2>
+<div class="table-wrap">
+<table>
+<thead>
+<tr><th>Platform</th><th>Name</th><th>Address</th><th>Pay / Distance</th><th>Status</th></tr>
+</thead>
+<tbody id="records"></tbody>
+</table>
+</div>
+</div>
+</div>
 
-        // 1. पैसे ($ Amount) ढूंढें (जैसे $12.50)
-        const priceMatch = text.match(/\$\s?\d+(\.\d{2})?/);
-        const payout = priceMatch ? priceMatch[0] : "";
+<script>
+const API_URL="https://delivery-job-catcher.australianarinder1988.workers.dev";
+let notifications=[];
+let deliveries=JSON.parse(localStorage.getItem("deliveries")||"[]");
 
-        // 2. दूरी (km या mi) ढूंढें (जैसे 4.2 km)
-        const distMatch = text.match(/\d+(\.\d+)?\s?(km|mi|miles)/i);
-        const distance = distMatch ? distMatch[0] : "";
+function escapeHTML(value){
+return String(value??"").replace(/[&<>'"]/g,c=>({
+"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"
+})[c]);
+}
 
-        // 3. पता (Address - जिसमें स्ट्रीट, रोड आदि हो) ढूंढें
-        const addressLine = lines.find(l => /\d+\s+[a-zA-Z]+.*(St|Rd|Ave|Dr|Way|Ct|Ln|Cres|Blvd|Hwy)/i.test(l)) || "";
+async function loadNotifications(){
+const token=document.getElementById("apiToken").value.trim();
+const status=document.getElementById("connection");
 
-        // 4. रेस्टोरेंट या कस्टमर का नाम (पहली साफ़ लाइन)
-        const possibleName = lines.find(l => !l.includes('$') && !l.includes('km') && l !== addressLine && l.length > 3) || "DoorDash Order";
+if(!token){status.textContent="Please enter API token";return;}
 
-        // फॉर्म में डेटा भरें
-        document.getElementById("customer").value = possibleName;
-        if (addressLine) document.getElementById("address").value = addressLine;
-        
-        let payDist = [payout, distance].filter(Boolean).join(" | ");
-        if (payDist) document.getElementById("phone").value = payDist;
+status.textContent="Connecting...";
 
-        statusDiv.textContent = "✅ Scan Complete! Details auto-filled below.";
-      } catch (error) {
-        console.error(error);
-        statusDiv.textContent = "❌ Could not read image clearly. Please enter manually.";
-      }
-    }
+try{
+const response=await fetch(API_URL+"/api/notifications",{
+headers:{"Authorization":"Bearer "+token}
+});
+const data=await response.json();
 
-    function render() {
-      document.getElementById("total").textContent = deliveries.length;
-      document.getElementById("completed").textContent = deliveries.filter(d => d.status === "Completed").length;
-      document.getElementById("pending").textContent = deliveries.filter(d => d.status === "Pending").length;
+if(!response.ok){
+status.textContent="Error: "+(data.error||response.status);
+return;
+}
 
-      document.getElementById("records").innerHTML = deliveries.map(d => `
-        <tr>
-          <td>${escapeHTML(d.customer)}</td>
-          <td>${escapeHTML(d.address)}</td>
-          <td>${escapeHTML(d.phone)}</td>
-          <td>${escapeHTML(d.status)}</td>
-        </tr>
-      `).join("");
+notifications=data.notifications||[];
+status.textContent="Connected! "+notifications.length+" notifications loaded.";
+updateCounts();
+renderNotifications();
 
-      localStorage.setItem("deliveries", JSON.stringify(deliveries));
-    }
+}catch(error){
+status.textContent="Connection failed. Check internet or Worker.";
+}
+}
 
-    function escapeHTML(value) {
-      return String(value).replace(/[&<>'"]/g, c => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-      })[c]);
-    }
+function updateCounts(){
+document.getElementById("totalNotifications").textContent=notifications.length;
+document.getElementById("amazonCount").textContent=notifications.filter(n=>n.platform==="Amazon Flex").length;
+document.getElementById("sherpaCount").textContent=notifications.filter(n=>n.platform==="Sherpa").length;
+document.getElementById("dasherCount").textContent=notifications.filter(n=>n.platform==="Dasher").length;
+document.getElementById("didiCount").textContent=notifications.filter(n=>n.platform==="Didi Driver").length;
+}
 
-    function addDelivery() {
-      const customer = document.getElementById("customer").value.trim();
-      const address = document.getElementById("address").value.trim();
-      const phone = document.getElementById("phone").value.trim();
-      const status = document.getElementById("status").value.trim();
+function renderNotifications(){
+const filter=document.getElementById("platformFilter").value;
+const list=filter==="All"?notifications:notifications.filter(n=>n.platform===filter);
+const box=document.getElementById("notifications");
 
-      if (!customer || !address || !phone || !status) {
-        alert("Please fill all fields");
-        return;
-      }
+if(!list.length){box.innerHTML="<p>No notifications found.</p>";return;}
 
-      deliveries.push({ customer, address, phone, status });
-      
-      document.getElementById("customer").value = "";
-      document.getElementById("address").value = "";
-      document.getElementById("phone").value = "";
-      document.getElementById("status").value = "Pending";
-      document.getElementById("scanStatus").textContent = "";
-      document.getElementById("screenshotInput").value = "";
+box.innerHTML=list.map(n=>`
+<div class="offer">
+<strong>${escapeHTML(n.platform)}</strong>
+<p>${escapeHTML(n.body)}</p>
+<div class="small">${escapeHTML(n.received_at)}</div>
+</div>`).join("");
+}
 
-      alert("Delivery added successfully!");
-      render();
-    }
+function render(){
+document.getElementById("total").textContent=deliveries.length;
+document.getElementById("completed").textContent=deliveries.filter(d=>d.status==="Completed").length;
+document.getElementById("pending").textContent=deliveries.filter(d=>d.status==="Pending").length;
 
-    render();
-  </script>
+document.getElementById("records").innerHTML=deliveries.map(d=>`
+<tr>
+<td>${escapeHTML(d.platform)}</td>
+<td>${escapeHTML(d.customer)}</td>
+<td>${escapeHTML(d.address)}</td>
+<td>${escapeHTML(d.phone)}</td>
+<td>${escapeHTML(d.status)}</td>
+</tr>`).join("");
 
+localStorage.setItem("deliveries",JSON.stringify(deliveries));
+}
+
+function addDelivery(){
+const platform=document.getElementById("customerPlatform").value;
+const customer=document.getElementById("customer").value.trim();
+const address=document.getElementById("address").value.trim();
+const phone=document.getElementById("phone").value.trim();
+const status=document.getElementById("status").value;
+
+if(!customer||!address||!phone){alert("Please fill all fields");return;}
+
+deliveries.push({platform,customer,address,phone,status});
+document.getElementById("customer").value="";
+document.getElementById("address").value="";
+document.getElementById("phone").value="";
+document.getElementById("status").value="Pending";
+render();
+alert("Delivery added successfully!");
+}
+
+async function scanScreenshot(){
+const file=document.getElementById("screenshotInput").files[0];
+if(!file)return;
+
+const status=document.getElementById("scanStatus");
+status.textContent="Scanning screenshot...";
+
+try{
+const result=await Tesseract.recognize(file,"eng");
+const text=result.data.text;
+const lines=text.split("\n").map(x=>x.trim()).filter(x=>x.length>2);
+const price=text.match(/\$\s?\d+(\.\d{2})?/);
+const distance=text.match(/\d+(\.\d+)?\s?(km|mi|miles)/i);
+
+document.getElementById("customer").value=lines.find(x=>!x.includes("$"))||"Delivery Job";
+document.getElementById("address").value=lines.find(x=>/\d+\s+\w+.*(St|Rd|Ave|Dr|Way|Ct|Ln)/i.test(x))||"";
+document.getElementById("phone").value=[price?price[0]:"",distance?distance[0]:""].filter(Boolean).join(" | ");
+status.textContent="Scan completed. Please check extracted details.";
+}catch(error){
+status.textContent="Scan failed. Enter details manually.";
+}
+}
+
+render();
+</script>
 </body>
 </html>
